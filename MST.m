@@ -157,6 +157,20 @@ fn[q_, \[Epsilon]_, \[Kappa]_, \[Tau]_, \[Nu]_, \[Lambda]_, s_, m_, nf_] :=
 (******************************************************************************)
 (*************************** Asymptotic amplitudes ****************************)
 (******************************************************************************)
+Switch[MST`$MasterFunction,
+"ReggeWheeler",
+  prefacInTrans[s_, \[Epsilon]_, \[Tau]_, \[Kappa]_] := E^(I \[Epsilon]);
+  prefacUpTrans[s_, \[Epsilon]_, \[Tau]_, \[Kappa]_] := (2I)^s Exp[I \[Epsilon] Log[\[Epsilon]]];
+  prefacAplus[s_, \[Epsilon]_, \[Tau]_, \[Kappa]_, \[Nu]_] := (2^(-1 - I \[Epsilon]) E^(-((\[Pi] \[Epsilon])/2) + 1/2 I \[Pi] (1 + \[Nu])) Gamma[\[Nu]+I \[Epsilon]+1])/Gamma[\[Nu]-I \[Epsilon]+1];
+  prefacInInc[s_, \[Epsilon]_, \[Tau]_, \[Kappa]_, \[Nu]_, K\[Nu]1_, K\[Nu]2_] := (K\[Nu]1 - I E^(-I \[Pi] \[Nu]) Sin[\[Pi] (\[Nu] + I \[Epsilon])] / Sin[\[Pi] (\[Nu] - I \[Epsilon])] K\[Nu]2);,
+"Teukolsky", 
+  prefacInTrans[s_, \[Epsilon]_, \[Tau]_, \[Kappa]_] := 4^s \[Kappa]^(2 s) E^(I (\[Epsilon] + \[Tau]) \[Kappa] (1/2 + Log[\[Kappa]]/(1 + \[Kappa])));
+  prefacUpTrans[s_, \[Epsilon]_, \[Tau]_, \[Kappa]_] := (\[Epsilon]/2)^(-1 - 2 s) Exp[I \[Epsilon] (Log[\[Epsilon]] - (1 - \[Kappa])/2)];
+  prefacAplus[s_, \[Epsilon]_, \[Tau]_, \[Kappa]_, \[Nu]_] := (2^(-1 + s - I \[Epsilon]) E^(-((\[Pi] \[Epsilon])/2) + 1/2 I \[Pi] (1 - s + \[Nu])) Gamma[1 - s + I \[Epsilon] + \[Nu]])/Gamma[1 + s - I \[Epsilon] + \[Nu]];
+  prefacInInc[s_, \[Epsilon]_, \[Tau]_, \[Kappa]_, \[Nu]_, K\[Nu]1_, K\[Nu]2_] := (\[Epsilon]/2)^-1 (K\[Nu]1 - I E^(-I \[Pi] \[Nu]) Sin[\[Pi] (\[Nu] - s + I \[Epsilon])] / Sin[\[Pi] (\[Nu] + s - I \[Epsilon])] K\[Nu]2) Exp[-I \[Epsilon] (Log[\[Epsilon]] - (1 - \[Kappa])/2)];,
+_, Abort[];
+];
+
 Amplitudes[s_Integer, l_Integer, m_Integer, q_, \[Epsilon]_, \[Nu]_, \[Lambda]_] :=
  Module[{\[Kappa], \[Tau], \[Epsilon]p, \[Omega], K\[Nu], K\[Nu]1, K\[Nu]2, Aminus, Aplus, InTrans, UpTrans, InInc, InRef, n, fSumUp, fSumDown, fSumK\[Nu]1Up, fSumK\[Nu]1Down, fSumK\[Nu]2Up, fSumK\[Nu]2Down, fSumAminusUp, fSumAminusDown},
  Internal`InheritedBlock[{\[Alpha], \[Beta], \[Gamma], fn},
@@ -233,15 +247,13 @@ Amplitudes[s_Integer, l_Integer, m_Integer, q_, \[Epsilon]_, \[Nu]_, \[Lambda]_]
   ];
   
   (* In transmission coefficient: Btrans in ST (167) and CO (3.12) *)
-  (* RWFIXME: CO (3.12a) *)
-  InTrans = 4^s \[Kappa]^(2 s) E^(I (\[Epsilon] + \[Tau]) \[Kappa] (1/2 + Log[\[Kappa]]/(1 + \[Kappa]))) (fSumUp+fSumDown);
+  InTrans = prefacInTrans[s, \[Epsilon], \[Tau], \[Kappa]] (fSumUp+fSumDown);
 
   (* A-: ST (158), CO (3.19) *)
   Aminus = 2^(-s - 1 + I \[Epsilon]) E^(-\[Pi] \[Epsilon] / 2 - I \[Pi] (\[Nu]+1+s) / 2) (fSumAminusUp+fSumAminusDown);
 
   (* Up Transmission coefficient: Ctrans in ST (170), CO (3.20) *)
-  (* RWFIXME: Aminus (2I)^s Exp[I \[Epsilon] Log[\[Epsilon]]] *)
-  UpTrans = Aminus (\[Epsilon]/2)^(-1 - 2 s) Exp[I \[Epsilon] (Log[\[Epsilon]] - (1 - \[Kappa])/2)];
+  UpTrans = prefacUpTrans[s, \[Epsilon], \[Tau], \[Kappa]] Aminus;
 
   (* K\[Nu]: ST (165), CO (3.32) *)
   K\[Nu]1 = ((2^-\[Nu]) (E^(I \[Epsilon] \[Kappa])) ((\[Epsilon] \[Kappa])^(s - \[Nu])) Gamma[1 - s - 2 I \[Epsilon]p] Gamma[2 + 2 \[Nu]])/(Gamma[1 - s + I \[Epsilon] + \[Nu]] Gamma[1 + s + I \[Epsilon] + \[Nu]] Gamma[1 + \[Nu] + I \[Tau]]) fSumK\[Nu]1Up / fSumK\[Nu]1Down;
@@ -251,13 +263,10 @@ Amplitudes[s_Integer, l_Integer, m_Integer, q_, \[Epsilon]_, \[Nu]_, \[Lambda]_]
   InRef = UpTrans (K\[Nu]1 + I E^(I \[Pi] \[Nu]) K\[Nu]2);
 
   (* A+: ST (157), CO (3.38) and (3.41) *)
-  (* RWFIXME: CO (3.38)
-    AplusRW = (2^(-1 - I \[Epsilon]) E^(-((\[Pi] \[Epsilon])/2) + 1/2 I \[Pi] (1 + \[Nu])) Gamma[1 - s + I \[Epsilon] + \[Nu]]Gamma[\[Nu]+I \[Epsilon]+1])/(Gamma[1 + s - I \[Epsilon] + \[Nu]] Gamma[\[Nu]-I \[Epsilon]+1])(fSumUpAplusRW+fSumDownAplusRW);*)
-  Aplus = (2^(-1 + s - I \[Epsilon]) E^(-((\[Pi] \[Epsilon])/2) + 1/2 I \[Pi] (1 - s + \[Nu])) Gamma[1 - s + I \[Epsilon] + \[Nu]])/Gamma[1 + s - I \[Epsilon] + \[Nu]] (fSumUp+fSumDown);
+  Aplus = prefacAplus[s, \[Epsilon], \[Tau], \[Kappa], \[Nu]] (fSumUp+fSumDown);
 
-  (* In incidence coefficient: Binc from ST (168), CO (3.39) *)
-  (* RWFIXME: CO (3.36) *)
-  InInc = \[Omega]^-1 (K\[Nu]1 - I E^(-I \[Pi] \[Nu]) Sin[\[Pi] (\[Nu] - s + I \[Epsilon])] / Sin[\[Pi] (\[Nu] + s - I \[Epsilon])] K\[Nu]2) Exp[-I \[Epsilon] (Log[\[Epsilon]] - (1 - \[Kappa])/2)] Aplus;
+  (* In incidence coefficient: Binc from ST (168), CO (3.36) and (3.39) *)
+  InInc = prefacInInc[s, \[Epsilon], \[Tau], \[Kappa], \[Nu], K\[Nu]1, K\[Nu]2] Aplus;
 
   (* Return results as an Association *)
   <| "In" -> <| "Incidence" -> InInc, "Transmission" -> InTrans, "Reflection" -> InRef|>,
