@@ -561,23 +561,13 @@ Derivative[1][MSTRadialUp[s_Integer, l_Integer, m_Integer, q_, \[Epsilon]_, \[Nu
 (*Second and higher derivatives*)
 
 
-Derivative[n_Integer?Positive][MSTRadialIn[s_Integer, l_Integer, m_Integer, q_, \[Epsilon]_, \[Nu]_, \[Lambda]_, norm_, {wp_, prec_, acc_}]][r0_?NumericQ] :=
+Derivative[n_Integer?Positive][(MSTR:MSTRadialIn|MSTRadialUp)[s_Integer, l_Integer, m_Integer, q_, \[Epsilon]_, \[Nu]_, \[Lambda]_, norm_, {wp_, prec_, acc_}]][r0_?NumericQ] :=
  Module[{Rderivs, R, r, i},
   pderivs = D[R[r_], {r_, i_}] :> D[d2R[s, l, m, q, \[Epsilon], \[Lambda], r, R], {r, i - 2}] /; i >= 2;
   Do[Derivative[i][R][r] = Collect[D[Derivative[i - 1][R][r], r] /. pderivs,{R'[r], R[r]}, Simplify];, {i, 2, n}];
   Derivative[n][R][r] /. {
-    R'[r] -> MSTRadialIn[s, l, m, q, \[Epsilon], \[Nu], \[Lambda], norm, {wp, prec, acc}]'[r0],
-    R[r] -> MSTRadialIn[s, l, m, q, \[Epsilon], \[Nu], \[Lambda], norm, {wp, prec, acc}][r0], r -> r0, \[Epsilon]L -> \[Epsilon], qL -> q, \[Lambda]L -> \[Lambda]}
-];
-
-
-Derivative[n_Integer?Positive][MSTRadialUp[s_Integer, l_Integer, m_Integer, q_, \[Epsilon]_, \[Nu]_, \[Lambda]_, norm_, {wp_, prec_, acc_}]][r0_?NumericQ] :=
- Module[{Rderivs, R, r, i},
-  pderivs = D[R[r_], {r_, i_}] :> D[d2R[s, l, m, q, \[Epsilon], \[Lambda], r, R], {r, i - 2}] /; i >= 2;
-  Do[Derivative[i][R][r] = Collect[D[Derivative[i - 1][R][r], r] /. pderivs,{R'[r], R[r]}, Simplify];, {i, 2, n}];
-  Derivative[n][R][r] /. {
-    R'[r] -> MSTRadialUp[s, l, m, q, \[Epsilon], \[Nu], \[Lambda], norm, {wp, prec, acc}]'[r0],
-    R[r] -> MSTRadialUp[s, l, m, q, \[Epsilon], \[Nu], \[Lambda], norm, {wp, prec, acc}][r0], r -> r0, \[Epsilon]L -> \[Epsilon], qL -> q, \[Lambda]L -> \[Lambda]}
+    R'[r] -> MSTR[s, l, m, q, \[Epsilon], \[Nu], \[Lambda], norm, {wp, prec, acc}]'[r0],
+    R[r] -> MSTR[s, l, m, q, \[Epsilon], \[Nu], \[Lambda], norm, {wp, prec, acc}][r0], r -> r0, \[Epsilon]L -> \[Epsilon], qL -> q, \[Lambda]L -> \[Lambda]}
 ];
 
 
